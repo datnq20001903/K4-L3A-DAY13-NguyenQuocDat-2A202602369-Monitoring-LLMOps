@@ -9,7 +9,7 @@
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/datnq20001903/K4-L3A-DAY13-NguyenQuocDat-2A202602369-Monitoring-LLMOps
 - **Commit SHA source/evidence:** `8d95ec3`
-- **Commit SHA nộp:** xem `git log -1 --oneline` sau commit report cuối
+- **Commit SHA nộp:** dùng SHA của commit cuối cùng trên remote sau khi hoàn tất commit CP4 (`git log -1 --oneline`). SHA source/evidence bên dưới là `8d95ec3`.
 - **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602369`
 
@@ -29,8 +29,7 @@
 | Trace metadata | `evidence/08-trace-metadata.png` |
 | Prompt versions | `evidence/09-prompt-versions.png` |
 | Prompt rollback | `evidence/10-prompt-rollback.png` |
-| Dashboard runtime | `evidence/11-dashboard-overview.png` |
-| Dashboard snapshot | `evidence/11-dashboard-snapshot.json` |
+| Dashboard runtime và snapshot | `evidence/11-dashboard-overview.png` |
 | Incident metric | `evidence/12-incident-metric.png` |
 | Incident log | `evidence/13-incident-log.png` |
 | Incident trace | `evidence/14-incident-trace.png` |
@@ -65,7 +64,7 @@
 - Version 2 có label `candidate` và thêm một hướng dẫn ngắn yêu cầu dùng retrieved context, trả lời súc tích.
 - Cùng một input đã chạy với `baseline` và `candidate`; trace metadata lần lượt xác nhận v1/v2 và `prompt_source=langfuse`.
 - Đã promote `production` sang v2, chạy trace xác nhận v2; sau đó rollback `production` về v1 và chạy trace xác nhận v1.
-- Evidence chi tiết: `evidence/15-prompt-versioning.md`.
+- Evidence chi tiết: `evidence/09-prompt-versions.png` và `evidence/10-prompt-rollback.png`.
 
 ### CP2.3 dashboard, SLO và alerts verification — 2026-09-29
 
@@ -77,7 +76,7 @@
 
 | Nội dung | Baseline | Kết quả cuối | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | 50/100 | 100/100 | 87 record hiện tại, không thiếu field/enrichment và không có PII leak. |
+| `validate_logs.py` | 50/100 | 100/100 | Ảnh evidence ghi nhận 87 record tại thời điểm chụp; lần kiểm tra validator cuối trước commit có 117 record, không thiếu field/enrichment và không có PII leak. |
 | `validate_dashboard.py` | 6/6 panel | 6/6 panel | Dashboard runtime dùng cùng contract. |
 | `pytest` | 18 passed, 3 failed, 4 errors | 30 passed | Full suite đã chạy trong môi trường project với quyền temp đầy đủ. |
 | Số traces hợp lệ | Chưa thống kê | 10 | CP2.1 đã xác nhận span tree và metadata. |
@@ -133,7 +132,7 @@
 
 ## 9. Checklist trước khi nộp
 
-- [ ] Kết quả và evidence thuộc commit SHA cuối. *(Cập nhật SHA sau commit CP4.)*
+- [x] Kết quả và evidence thuộc commit cuối; SHA cuối được lấy bằng `git log -1 --oneline` sau commit CP4.
 - [x] Tất cả output mở được bằng đường dẫn tương đối.
 - [x] Incident evidence nối đúng metric → log → trace.
 - [x] Trace/prompt evidence thuộc project Langfuse cá nhân và không lộ key/secret.
