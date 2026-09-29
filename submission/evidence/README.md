@@ -2,10 +2,10 @@
 
 Đặt ảnh hoặc output text dùng để chấm vào thư mục này. Danh sách đầy đủ xem tại [docs/SUBMISSION.md](../../docs/SUBMISSION.md).
 
-Tên file gợi ý:
+Evidence thực tế trong repository:
 
 ```text
-01-pytest.png
+01-pytests.png
 02-log-validator.png
 03-dashboard-validator.png
 04-structured-log.png

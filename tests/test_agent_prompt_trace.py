@@ -27,6 +27,45 @@ class RecordingLangfuseClient:
     def update_current_span(self, **kwargs) -> None:
         self.span_updates.append(kwargs)
 
+    def start_as_current_observation(self, **kwargs):
+        @contextmanager
+        def observation_context():
+            yield None
+
+        return observation_context()
+
+
+class RecordingObservation:
+    def __init__(self, client, name: str, as_type: str, **kwargs) -> None:
+        self.client = client
+        self.name = name
+        self.as_type = as_type
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        self.client.observations.append(self)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        return None
+
+    def update(self, **kwargs) -> None:
+        self.kwargs.update(kwargs)
+
+
+class RecordingTracingClient(RecordingLangfuseClient):
+    def __init__(self) -> None:
+        super().__init__()
+        self.observations: list[RecordingObservation] = []
+
+    def start_as_current_observation(self, **kwargs):
+        return RecordingObservation(
+            self,
+            name=kwargs.pop("name"),
+            as_type=kwargs.pop("as_type"),
+            **kwargs,
+        )
+
 
 def test_agent_records_prompt_version_with_v4_observation_api(monkeypatch) -> None:
     monkeypatch.setenv("LANGFUSE_PROMPT_NAME", "day13-chat")
@@ -54,7 +93,9 @@ def test_agent_records_prompt_version_with_v4_observation_api(monkeypatch) -> No
         correlation_id="req-12345678",
     )
 
-    span_update = client.span_updates[-1]
+    span_update = next(
+        update for update in client.span_updates if "metadata" in update
+    )
     assert span_update["metadata"] == {
         "doc_count": 1,
         "query_preview": "Explain traces",
@@ -67,3 +108,32 @@ def test_agent_records_prompt_version_with_v4_observation_api(monkeypatch) -> No
     assert span_update["version"] == "3"
     assert propagated[0]["metadata"]["correlation_id"] == "req-12345678"
     assert propagated[-1]["prompt"] is client.prompt
+
+
+def test_agent_creates_nested_retriever_and_generation_observations(monkeypatch) -> None:
+    client = RecordingTracingClient()
+    monkeypatch.setattr(agent_module, "get_langfuse_client", lambda: client)
+    monkeypatch.setattr(agent_module, "tracing_enabled", lambda: True)
+
+    agent_module.LabAgent.run.__wrapped__(
+        agent_module.LabAgent(),
+        user_id="student-01",
+        feature="monitoring",
+        session_id="session-01",
+        message="Explain metrics and traces",
+        correlation_id="req-12345678",
+    )
+
+    assert [observation.name for observation in client.observations] == [
+        "retrieve-context",
+        "generate-response",
+    ]
+    assert [observation.as_type for observation in client.observations] == [
+        "retriever",
+        "generation",
+    ]
+    generation = client.observations[-1]
+    assert generation.kwargs["model"] == "claude-sonnet-4-5"
+    assert generation.kwargs["usage_details"]["input_tokens"] > 0
+    assert generation.kwargs["usage_details"]["output_tokens"] > 0
+    assert generation.kwargs["cost_details"]["total"] >= 0

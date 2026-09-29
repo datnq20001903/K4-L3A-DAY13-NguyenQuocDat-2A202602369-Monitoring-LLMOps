@@ -7,7 +7,12 @@ primary_slo:
     total_event: 'event == "request_received"'
   target_percent: 99.5
   error_budget_percent: 0.5
-  note: Học viên phải giải thích hoặc điều chỉnh ngưỡng bằng baseline của mình.
+  note: Một request chỉ tốt khi có response_sent và latency_ms <= 3000; baseline hiện tại dùng cùng ngưỡng này.
+error_budget:
+  formula: '100 - primary_slo.target_percent'
+  allowed_bad_requests_percent: 0.5
+  allowed_bad_requests_per_1000: 5
+  interpretation: Với mỗi 1.000 request trong cửa sổ 28 ngày, tối đa 5 request được phép không đạt SLO.
 guardrails:
   error_rate_pct_max: 2
   daily_cost_usd_max: 2.5
